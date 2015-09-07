@@ -24,6 +24,14 @@ cdef inline void float_array_init(float *a,int n,float v) nogil:
     a[i] = v
   return
 
+cdef inline void double_array_init(double *a,int n,double v) nogil:
+  """
+  """
+  cdef int i
+  for i in xrange(n):
+    a[i] = v
+  return
+
 #cdef inline int compare(const void *aa, const void *bb):
   #"""
   #compare function used with qsort

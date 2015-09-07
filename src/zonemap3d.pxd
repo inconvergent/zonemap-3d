@@ -63,6 +63,8 @@ cdef class Zonemap3d:
 
   ## INFO
 
+  cpdef list _perftest(self, int nmax, int num_points, int num_lookup)
+
   cpdef int add_vertex(self, int v1)
 
   cpdef int del_vertex(self, int v1)

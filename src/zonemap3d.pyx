@@ -10,6 +10,12 @@ from libc.math cimport sqrt
 from helpers cimport int_array_init
 from helpers cimport float_array_init
 
+import numpy as np
+cimport numpy as np
+
+from time import time
+
+
 cdef int SIZE = 1024
 
 
@@ -60,7 +66,6 @@ cdef class Zonemap3d:
     self.X = X
     self.Y = Y
     self.Z = Z
-
     return
 
   @cython.wraparound(False)
@@ -332,6 +337,71 @@ cdef class Zonemap3d:
           num += 1
 
     return num
+
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cpdef list _perftest(self, int nmax, int num_points, int num_lookup):
+
+    cdef np.ndarray[double, mode="c",ndim=2] a
+
+    cdef int i
+    cdef double t1
+    cdef double t2
+
+    cdef list res = []
+
+    cdef float *X = <float *>malloc(nmax*sizeof(float))
+    cdef float *Y = <float *>malloc(nmax*sizeof(float))
+    cdef float *Z = <float *>malloc(nmax*sizeof(float))
+    self.__assign_xyz_arrays(X,Y,Z)
+
+    a = np.random.random((num_points,3))
+    t1 = time()
+    for i in xrange(num_points):
+      X[i] = a[i,0]
+      Y[i] = a[i,1]
+      Z[i] = a[i,2]
+      self.__add_vertex(i)
+    t2 = time()
+    res.append(('add',t2-t1))
+
+
+    a = np.random.random((num_lookup,3))
+    t1 = time()
+    for i in xrange(num_lookup):
+      self.__sphere_is_free(a[i,0], a[i,1], a[i,2], 0.03)
+    t2 = time()
+    res.append(('is free',t2-t1))
+
+    a = np.random.random((num_lookup,3))
+    t1 = time()
+    cdef int asize = self.__get_greatest_zone_size()
+    cdef int *vertices
+    vertices = <int *>malloc(asize*sizeof(int))
+    for i in xrange(num_lookup):
+      self.__sphere_vertices(
+        a[i,0],
+        a[i,1],
+        a[i,2],
+        0.03,
+        vertices
+      )
+    t2 = time()
+    res.append(('sphere',t2-t1))
+
+
+    t1 = time()
+    for i in xrange(num_points):
+      self.__del_vertex(i)
+    t2 = time()
+    res.append(('del',t2-t1))
+
+    free(X)
+    free(Y)
+    free(Z)
+
+    return res
 
   @cython.wraparound(False)
   @cython.boundscheck(False)
