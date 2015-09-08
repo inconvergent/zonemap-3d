@@ -5,7 +5,9 @@ from __future__ import division
 
 cimport cython
 from libc.stdlib cimport malloc, free, realloc
+from cython.parallel import parallel, prange
 from libc.math cimport sqrt
+
 
 from helpers cimport int_array_init
 from helpers cimport float_array_init
@@ -16,7 +18,7 @@ cimport numpy as np
 from time import time
 
 
-cdef int SIZE = 1024
+cdef int SIZE = 64
 
 
 cdef class Zonemap3d:
@@ -31,7 +33,7 @@ cdef class Zonemap3d:
 
     self.nz = nz
 
-    self.total_zones = (2+nz)*(2+nz)*(2+nz)
+    self.total_zones = nz*nz*nz
 
     self.greatest_zone_size = SIZE
 
@@ -41,7 +43,7 @@ cdef class Zonemap3d:
 
   def __cinit__(self, int nz, *arg, **args):
 
-    cdef int total_zones = (2+nz)*(2+nz)*(2+nz)
+    cdef int total_zones = nz*nz*nz
 
     self.VZ = <int *>malloc(SIZE*sizeof(int))
 
@@ -200,13 +202,11 @@ cdef class Zonemap3d:
     """
 
     cdef int nz = self.nz
-    cdef int nz2 = self.nz+2
+    cdef int k = int(z*nz)
+    cdef int j = int(y*nz)
+    cdef int i = int(x*nz)
 
-    cdef int i = 1 + <int>(x*nz)
-    cdef int j = 1 + <int>(y*nz)
-    cdef int k = 1 + <int>(z*nz)
-
-    return nz2*nz2*k + nz2*i + j
+    return nz*nz*k + nz*j + i
 
   @cython.wraparound(False)
   @cython.boundscheck(False)
@@ -244,46 +244,42 @@ cdef class Zonemap3d:
     the width of each zone.
     """
 
+    #TODO: optimize this
+
     cdef int i
     cdef int j
     cdef sZ *zone
     cdef int zi = self.__get_z(x,y,z)
 
     cdef int nz = self.nz
-    cdef int nz22 = (nz+2)*(nz+2)
 
     cdef float dx
     cdef float dy
     cdef float dz
     cdef float rad2 = rad*rad
 
-    # im sorry ...
-    cdef int *neighbors = [
-      zi+nz22, zi-1+nz22, zi+1+nz22,
-      zi-nz-2+nz22, zi+nz+2+nz22, zi-nz-1+nz22,
-      zi-nz-3+nz22, zi+nz+1+nz22, zi+nz+3+nz22,
+    cdef int zz = int(z*nz)
+    cdef int zy = int(y*nz)
+    cdef int zx = int(x*nz)
 
-      zi, zi-1, zi+1,
-      zi-nz-2, zi+nz+2, zi-nz-1,
-      zi-nz-3, zi+nz+1, zi+nz+3,
+    cdef int a
+    cdef int b
+    cdef int c
 
-      zi-nz22, zi-1-nz22, zi+1-nz22,
-      zi-nz-2-nz22, zi+nz+2-nz22, zi-nz-1-nz22,
-      zi-nz-3-nz22, zi+nz+1-nz22, zi+nz+3-nz22,
-    ]
+    for a in xrange(max(zx-1,0),min(zx+2,nz)):
+      for b in xrange(max(zy-1,0),min(zy+2,nz)):
+        for c in xrange(max(zz-1,0),min(zz+2,nz)):
 
-    for i in xrange(27):
+          zone = self.ZONES[c*nz*nz + b*nz + c]
 
-      zone = self.ZONES[neighbors[i]]
+          for j in xrange(zone.count):
 
-      for j in xrange(zone.count):
+            dx = x-self.X[zone.ZV[j]]
+            dy = y-self.Y[zone.ZV[j]]
+            dz = z-self.Z[zone.ZV[j]]
 
-        dx = x-self.X[zone.ZV[j]]
-        dy = y-self.Y[zone.ZV[j]]
-        dz = z-self.Z[zone.ZV[j]]
-
-        if dx*dx+dy*dy+dz*dz<rad2:
-          return -1
+            if dx*dx+dy*dy+dz*dz<rad2:
+              return -1
 
     return 1
 
@@ -306,7 +302,6 @@ cdef class Zonemap3d:
     cdef int zi = self.__get_z(x,y,z)
 
     cdef int nz = self.nz
-    cdef int nz22 = (nz+2)*(nz+2)
 
     cdef int num = 0
 
@@ -315,33 +310,33 @@ cdef class Zonemap3d:
     cdef float dz
     cdef float rad2 = rad*rad
 
-    cdef int *neighbors = [
-      zi+nz22, zi-1+nz22, zi+1+nz22,
-      zi-nz-2+nz22, zi+nz+2+nz22, zi-nz-1+nz22,
-      zi-nz-3+nz22, zi+nz+1+nz22, zi+nz+3+nz22,
+    # cdef int zz = int(zi/nz/nz)
+    # cdef int zy = int((zi-nz*nz*zz)/nz)
+    # cdef int zx = int(zi-nz*nz*zz-nz*zy)
 
-      zi, zi-1, zi+1,
-      zi-nz-2, zi+nz+2, zi-nz-1,
-      zi-nz-3, zi+nz+1, zi+nz+3,
+    cdef int zz = int(z*nz)
+    cdef int zy = int(y*nz)
+    cdef int zx = int(x*nz)
 
-      zi-nz22, zi-1-nz22, zi+1-nz22,
-      zi-nz-2-nz22, zi+nz+2-nz22, zi-nz-1-nz22,
-      zi-nz-3-nz22, zi+nz+1-nz22, zi+nz+3-nz22,
-    ]
+    cdef int a
+    cdef int b
+    cdef int c
 
-    for i in xrange(27):
+    for a in xrange(max(zx-1,0),min(zx+2,nz)):
+      for b in xrange(max(zy-1,0),min(zy+2,nz)):
+        for c in xrange(max(zz-1,0),min(zz+2,nz)):
 
-      zone = self.ZONES[neighbors[i]]
+          zone = self.ZONES[c*nz*nz + b*nz + c]
 
-      for j in xrange(zone.count):
+          for j in xrange(zone.count):
 
-        dx = x-self.X[zone.ZV[j]]
-        dy = y-self.Y[zone.ZV[j]]
-        dz = z-self.Z[zone.ZV[j]]
+            dx = x-self.X[zone.ZV[j]]
+            dy = y-self.Y[zone.ZV[j]]
+            dz = z-self.Z[zone.ZV[j]]
 
-        if dx*dx+dy*dy+dz*dz<rad2:
-          vertices[num] = zone.ZV[j]
-          num += 1
+            if dx*dx+dy*dy+dz*dz<rad2:
+              vertices[num] = zone.ZV[j]
+              num += 1
 
     return num
 

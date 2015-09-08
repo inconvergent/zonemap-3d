@@ -13,7 +13,8 @@ extensions = [
   Extension(
     'zonemap3d',
     sources = ['./src/zonemap3d.pyx'],
-    extra_compile_args = _extra
+    extra_compile_args = _extra,
+    extra_link_args = ['-fopenmp']
   )
 ]
 

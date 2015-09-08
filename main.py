@@ -6,15 +6,14 @@ from zonemap3d import Zonemap3d
 
 def main():
 
-  nmax = int(1e7)
-
-  num_points = 1000000
+  nmax = 10000000
+  num_points = 100000
   num_lookup = 1000000
-  rads = [0.05, 0.04, 0.03, 0.02, 0.01]
+  nzs = [20, 30, 40, 60, 80, 100]
 
-  for rad in rads:
+  for nz in nzs:
 
-    nz = int(1.0/rad)
+    rad = 1.0/nz
     print('zones\t\t{:d}'.format(nz))
     print('rad\t\t{:2.4f}'.format(rad))
     print(' ')
