@@ -5,12 +5,12 @@ from __future__ import division
 
 cimport cython
 from libc.stdlib cimport malloc, free, realloc
-from cython.parallel import parallel, prange
+#from cython.parallel import parallel, prange
 from libc.math cimport sqrt
 
 
 from helpers cimport int_array_init
-from helpers cimport float_array_init
+from helpers cimport double_array_init
 
 import numpy as np
 cimport numpy as np
@@ -66,7 +66,7 @@ cdef class Zonemap3d:
   @cython.wraparound(False)
   @cython.boundscheck(False)
   @cython.nonecheck(False)
-  cdef void __assign_xyz_arrays(self, float *X, float *Y, float *Z) nogil:
+  cdef void __assign_xyz_arrays(self, double *X, double *Y, double *Z) nogil:
 
     self.X = X
     self.Y = Y
@@ -104,9 +104,9 @@ cdef class Zonemap3d:
 
     cdef int vnum = self.vnum
 
-    cdef float x = self.X[v1]
-    cdef float y = self.Y[v1]
-    cdef float z = self.Z[v1]
+    cdef double x = self.X[v1]
+    cdef double y = self.Y[v1]
+    cdef double z = self.Z[v1]
 
     cdef int z1 = self.__get_z(x,y,z)
 
@@ -197,7 +197,7 @@ cdef class Zonemap3d:
   @cython.wraparound(False)
   @cython.boundscheck(False)
   @cython.nonecheck(False)
-  cdef int __get_z(self, float x, float y, float z) nogil:
+  cdef int __get_z(self, double x, double y, double z) nogil:
     """
     """
 
@@ -213,9 +213,9 @@ cdef class Zonemap3d:
   @cython.nonecheck(False)
   cdef int __update_v(self, int v1) nogil:
 
-    cdef float x = self.X[v1]
-    cdef float y = self.Y[v1]
-    cdef float z = self.Z[v1]
+    cdef double x = self.X[v1]
+    cdef double y = self.Y[v1]
+    cdef double z = self.Z[v1]
     cdef int new_zone = self.__get_z(x, y, z)
 
     cdef int old_zone = self.VZ[v1]
@@ -238,7 +238,7 @@ cdef class Zonemap3d:
   @cython.boundscheck(False)
   @cython.nonecheck(False)
   @cython.cdivision(True)
-  cdef int __sphere_is_free(self, float x, float y, float z, float rad) nogil:
+  cdef int __sphere_is_free(self, double x, double y, double z, double rad) nogil:
     """
     tests if there is another vertex within rad of x,y. rad must be less than
     the width of each zone.
@@ -253,10 +253,10 @@ cdef class Zonemap3d:
 
     cdef int nz = self.nz
 
-    cdef float dx
-    cdef float dy
-    cdef float dz
-    cdef float rad2 = rad*rad
+    cdef double dx
+    cdef double dy
+    cdef double dz
+    cdef double rad2 = rad*rad
 
     cdef int zz = int(z*nz)
     cdef int zy = int(y*nz)
@@ -289,10 +289,10 @@ cdef class Zonemap3d:
   @cython.cdivision(True)
   cdef int __sphere_vertices(
     self,
-    float x,
-    float y,
-    float z,
-    float rad,
+    double x,
+    double y,
+    double z,
+    double rad,
     int *vertices
   ) nogil:
 
@@ -305,10 +305,10 @@ cdef class Zonemap3d:
 
     cdef int num = 0
 
-    cdef float dx
-    cdef float dy
-    cdef float dz
-    cdef float rad2 = rad*rad
+    cdef double dx
+    cdef double dy
+    cdef double dz
+    cdef double rad2 = rad*rad
 
     # cdef int zz = int(zi/nz/nz)
     # cdef int zy = int((zi-nz*nz*zz)/nz)
@@ -352,9 +352,9 @@ cdef class Zonemap3d:
     cdef list res = []
 
 
-    cdef float *X = <float *>malloc(nmax*sizeof(float))
-    cdef float *Y = <float *>malloc(nmax*sizeof(float))
-    cdef float *Z = <float *>malloc(nmax*sizeof(float))
+    cdef double *X = <double *>malloc(nmax*sizeof(double))
+    cdef double *Y = <double *>malloc(nmax*sizeof(double))
+    cdef double *Z = <double *>malloc(nmax*sizeof(double))
     self.__assign_xyz_arrays(X,Y,Z)
 
 
@@ -437,7 +437,7 @@ cdef class Zonemap3d:
   @cython.wraparound(False)
   @cython.boundscheck(False)
   @cython.nonecheck(False)
-  cpdef int sphere_is_free(self, float x, float y, float z, float rad):
+  cpdef int sphere_is_free(self, double x, double y, double z, double rad):
 
     return self.__sphere_is_free(x, y, z, rad)
 
