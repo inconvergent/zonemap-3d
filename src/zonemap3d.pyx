@@ -51,12 +51,15 @@ cdef class Zonemap3d:
 
   def __dealloc__(self):
 
-    free(self.VZ)
+    cdef int i
 
-    # TODO: is this a memory leak?
+    for i in xrange(self.total_zones):
+
+      free(self.ZONES[i].ZV)
+      free(self.ZONES[i])
+
     free(self.ZONES)
-
-    return
+    free(self.VZ)
 
   @cython.wraparound(False)
   @cython.boundscheck(False)
@@ -114,7 +117,7 @@ cdef class Zonemap3d:
 
       new_vz = <int *>realloc(self.VZ, self.vsize*2*sizeof(int))
 
-      if new_vz:
+      if new_vz is not NULL:
         self.VZ = new_vz;
         self.vsize = self.vsize*2
       else:
@@ -161,7 +164,7 @@ cdef class Zonemap3d:
     cdef int new_size = zone.size*2
     cdef int* new_zv = <int *>realloc(zone.ZV, new_size*sizeof(int))
 
-    if new_zv:
+    if new_zv is not NULL:
       zone.ZV = new_zv;
       zone.size = new_size
       if new_size>self.greatest_zone_size:
@@ -288,9 +291,14 @@ cdef class Zonemap3d:
   @cython.boundscheck(False)
   @cython.nonecheck(False)
   @cython.cdivision(True)
-  cdef int __sphere_vertices(self, float x, float y, float z, float rad, int *vertices) nogil:
-    """
-    """
+  cdef int __sphere_vertices(
+    self,
+    float x,
+    float y,
+    float z,
+    float rad,
+    int *vertices
+  ) nogil:
 
     cdef int i
     cdef int j
@@ -332,7 +340,6 @@ cdef class Zonemap3d:
         dz = z-self.Z[zone.ZV[j]]
 
         if dx*dx+dy*dy+dz*dz<rad2:
-
           vertices[num] = zone.ZV[j]
           num += 1
 
@@ -344,19 +351,19 @@ cdef class Zonemap3d:
   cpdef list _perftest(self, int nmax, int num_points, int num_lookup):
 
     cdef np.ndarray[double, mode="c",ndim=2] a
-
     cdef int i
     cdef double t1
     cdef double t2
-
     cdef list res = []
+
 
     cdef float *X = <float *>malloc(nmax*sizeof(float))
     cdef float *Y = <float *>malloc(nmax*sizeof(float))
     cdef float *Z = <float *>malloc(nmax*sizeof(float))
     self.__assign_xyz_arrays(X,Y,Z)
 
-    a = np.random.random((num_points,3))
+
+    a = 0.5 + 0.2*(1.0-2.0*np.random.random((num_points,3)))
     t1 = time()
     for i in xrange(num_points):
       X[i] = a[i,0]
@@ -372,13 +379,13 @@ cdef class Zonemap3d:
     for i in xrange(num_lookup):
       self.__sphere_is_free(a[i,0], a[i,1], a[i,2], 0.03)
     t2 = time()
-    res.append(('is free',t2-t1))
+    res.append(('free',t2-t1))
+
 
     a = np.random.random((num_lookup,3))
     t1 = time()
-    cdef int asize = self.__get_greatest_zone_size()
-    cdef int *vertices
-    vertices = <int *>malloc(asize*sizeof(int))
+    cdef int asize = self.__get_greatest_zone_size()*27
+    cdef int *vertices = <int *>malloc(asize*sizeof(int))
     for i in xrange(num_lookup):
       self.__sphere_vertices(
         a[i,0],
@@ -400,6 +407,7 @@ cdef class Zonemap3d:
     free(X)
     free(Y)
     free(Z)
+    free(vertices)
 
     return res
 

@@ -8,7 +8,7 @@ def main():
 
   nmax = int(1e7)
 
-  num_points = 100000
+  num_points = 1000000
   num_lookup = 1000000
   rads = [0.05, 0.04, 0.03, 0.02, 0.01]
 
@@ -26,6 +26,8 @@ def main():
     del(ZM)
 
     print('\n\n')
+
+  print('closing')
 
   return
 
