@@ -63,20 +63,20 @@ cdef class Zonemap3d:
     free(self.ZONES)
     free(self.VZ)
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef void __assign_xyz_arrays(self, double *X, double *Y, double *Z) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef void __assign_xyz_arrays(self, double *X, double *Y, double *Z) nogil:
 
     self.X = X
     self.Y = Y
     self.Z = Z
     return
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef void __init_zones(self) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef void __init_zones(self) nogil:
     # somehow this did not work when executed inside cinit
 
     cdef int i
@@ -95,10 +95,10 @@ cdef class Zonemap3d:
 
     return
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __add_vertex(self, int v1) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __add_vertex(self, int v1) nogil:
     """
     """
 
@@ -129,10 +129,10 @@ cdef class Zonemap3d:
     self.vnum += 1
     return vnum
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __del_vertex(self, int v1) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __del_vertex(self, int v1) nogil:
     """
     """
 
@@ -143,10 +143,10 @@ cdef class Zonemap3d:
 
     return 1
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __add_v_to_zone(self, int z1, int v1) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __add_v_to_zone(self, int z1, int v1) nogil:
 
     cdef sZ *zone = self.ZONES[z1]
 
@@ -158,10 +158,10 @@ cdef class Zonemap3d:
 
     return 1
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __extend_zv_of_zone(self, sZ *zone) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __extend_zv_of_zone(self, sZ *zone) nogil:
 
     cdef int new_size = zone.size*2
     cdef int* new_zv = <int *>realloc(zone.ZV, new_size*sizeof(int))
@@ -177,10 +177,10 @@ cdef class Zonemap3d:
 
     return 1
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __remove_v_from_zone(self, int z1, int v1) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __remove_v_from_zone(self, int z1, int v1) nogil:
 
     cdef sZ *zone = self.ZONES[z1]
     cdef int i
@@ -194,10 +194,10 @@ cdef class Zonemap3d:
 
     return -1
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __get_z(self, double x, double y, double z) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __get_z(self, double x, double y, double z) nogil:
     """
     """
 
@@ -208,10 +208,10 @@ cdef class Zonemap3d:
 
     return nz*nz*k + nz*j + i
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __update_v(self, int v1) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __update_v(self, int v1) nogil:
 
     cdef double x = self.X[v1]
     cdef double y = self.Y[v1]
@@ -234,11 +234,11 @@ cdef class Zonemap3d:
     return -1
 
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  #@cython.cdivision(True)
-  cdef int __sphere_is_free(self, double x, double y, double z, double rad) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  @cython.cdivision(True)
+  cdef int __sphere_is_free(self, double x, double y, double z, double rad) nogil:
     """
     tests if there is another vertex within rad of x,y. rad must be less than
     the width of each zone.
@@ -283,10 +283,10 @@ cdef class Zonemap3d:
 
     return 1
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  #@cython.cdivision(True)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  @cython.cdivision(True)
   cdef int __sphere_vertices(
     self,
     double x,
@@ -294,7 +294,7 @@ cdef class Zonemap3d:
     double z,
     double rad,
     int *vertices
-  ) :#nogil:
+  ) nogil:
 
     cdef int i
     cdef int j
@@ -343,9 +343,9 @@ cdef class Zonemap3d:
 
     return num
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef list _perftest(self, int nmax, int num_points, int num_lookup):
 
     cdef np.ndarray[double, mode="c",ndim=2] a
@@ -409,58 +409,58 @@ cdef class Zonemap3d:
 
     return res
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef int add_vertex(self, int v1):
 
     return self.__add_vertex(v1)
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef int del_vertex(self, int v1):
 
     return self.__del_vertex(v1)
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
-  cdef int __get_greatest_zone_size(self) :#nogil:
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cdef int __get_greatest_zone_size(self) nogil:
 
     return self.greatest_zone_size
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef int update_v(self, int v1):
 
     return self.__update_v(v1)
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef int sphere_is_free(self, double x, double y, double z, double rad):
 
     return self.__sphere_is_free(x, y, z, rad)
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef int get_greatest_zone_size(self):
 
     return self.greatest_zone_size
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef int get_vnum(self):
 
     return self.vnum
 
-  #@cython.wraparound(False)
-  #@cython.boundscheck(False)
-  #@cython.nonecheck(False)
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef list get_zone_info_dicts(self):
 
     cdef list res = []
