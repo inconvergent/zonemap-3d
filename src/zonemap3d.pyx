@@ -382,7 +382,7 @@ cdef class Zonemap3d:
 
     a = np.random.random((num_lookup,3))
     t1 = time()
-    cdef int asize = self.__get_greatest_zone_size()*27
+    cdef int asize = self.__get_max_sphere_count()
     cdef int *vertices = <int *>malloc(asize*sizeof(int))
     for i in xrange(num_lookup):
       self.__sphere_vertices(
@@ -426,9 +426,9 @@ cdef class Zonemap3d:
   @cython.wraparound(False)
   @cython.boundscheck(False)
   @cython.nonecheck(False)
-  cdef int __get_greatest_zone_size(self) nogil:
+  cdef int __get_max_sphere_count(self) nogil:
 
-    return self.greatest_zone_size
+    return self.greatest_zone_size*27
 
   @cython.wraparound(False)
   @cython.boundscheck(False)
@@ -447,9 +447,9 @@ cdef class Zonemap3d:
   @cython.wraparound(False)
   @cython.boundscheck(False)
   @cython.nonecheck(False)
-  cpdef int get_greatest_zone_size(self):
+  cpdef int get_max_sphere_count(self):
 
-    return self.greatest_zone_size
+    return self.__get_max_sphere_count()
 
   @cython.wraparound(False)
   @cython.boundscheck(False)
