@@ -3,6 +3,8 @@
 
 from __future__ import division
 
+cimport numpy as np
+
 cdef struct s_Z:
   int i
   int size
@@ -22,6 +24,8 @@ cdef class Zonemap3d:
   cdef int total_zones
 
   cdef int greatest_zone_size
+
+  cdef object tree
 
   ## ARRAYS
 
@@ -53,7 +57,16 @@ cdef class Zonemap3d:
 
   cdef int __update_v(self, int v1) nogil
 
+  cdef int __update_tree(self)
+
   cdef int __sphere_vertices(self, double x, double y, double z, double rad, int *vertices) nogil
+
+  cdef int __sphere_vertices_tree(
+    self,
+    np.ndarray[double, mode="c",ndim=2] x,
+    double rad,
+    int *vertices
+  )
 
   cdef int __sphere_is_free(self, double x, double y, double z, double rad) nogil
 

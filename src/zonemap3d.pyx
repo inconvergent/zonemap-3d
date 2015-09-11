@@ -8,6 +8,8 @@ from libc.stdlib cimport malloc, free, realloc
 #from cython.parallel import parallel, prange
 from libc.math cimport sqrt
 
+from scipy.spatial import cKDTree
+
 
 from helpers cimport int_array_init
 from helpers cimport double_array_init
@@ -233,6 +235,22 @@ cdef class Zonemap3d:
 
     return -1
 
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  @cython.cdivision(True)
+  cdef int __update_tree(self):
+
+    cdef np.ndarray[double, mode="c",ndim=2] a = np.zeros((self.vnum,3))
+
+    for v in xrange(self.vnum):
+      a[v,0] = self.X[v]
+      a[v,1] = self.Y[v]
+      a[v,2] = self.Z[v]
+
+    self.tree = cKDTree(a)
+
+    return 1
 
   @cython.wraparound(False)
   @cython.boundscheck(False)
@@ -280,6 +298,21 @@ cdef class Zonemap3d:
 
             if dx*dx+dy*dy+dz*dz<rad2:
               return -1
+
+    return 1
+
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  @cython.cdivision(True)
+  cdef int __sphere_vertices_tree(
+    self,
+    np.ndarray[double, mode="c",ndim=2] x,
+    double rad,
+    int *vertices
+  ):
+
+    self.tree.query_ball_point(x, rad)
 
     return 1
 
@@ -371,6 +404,11 @@ cdef class Zonemap3d:
     t2 = time()
     res.append(('add',t2-t1))
 
+    t1 = time()
+    self.__update_tree()
+    t2 = time()
+    res.append(('tree',t2-t1))
+
 
     a = np.random.random((num_lookup,3))
     t1 = time()
@@ -394,6 +432,18 @@ cdef class Zonemap3d:
       )
     t2 = time()
     res.append(('sphere',t2-t1))
+
+    a = np.random.random((num_lookup,3))
+    t1 = time()
+    free(vertices)
+    vertices = <int *>malloc(asize*sizeof(int))
+    self.__sphere_vertices_tree(
+      a,
+      0.03,
+      vertices
+    )
+    t2 = time()
+    res.append(('sphere t',t2-t1))
 
 
     t1 = time()
