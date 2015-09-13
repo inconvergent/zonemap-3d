@@ -262,6 +262,8 @@ cdef class Zonemap3d:
     cdef int zy = int(y*nz)
     cdef int zx = int(x*nz)
 
+    cdef int zvj
+
     cdef int a
     cdef int b
     cdef int c
@@ -274,9 +276,67 @@ cdef class Zonemap3d:
 
           for j in xrange(zone.count):
 
-            dx = x-self.X[zone.ZV[j]]
-            dy = y-self.Y[zone.ZV[j]]
-            dz = z-self.Z[zone.ZV[j]]
+            zvj = zone.ZV[j]
+
+            dx = x-self.X[zvj]
+            dy = y-self.Y[zvj]
+            dz = z-self.Z[zvj]
+
+            if dx*dx+dy*dy+dz*dz<rad2:
+              return -1
+
+    return 1
+
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  @cython.cdivision(True)
+  cdef int __sphere_is_free_ignore(self, double x, double y, double z, int v, double rad) nogil:
+    """
+    tests if there is another vertex within rad of x,y. rad must be less than
+    the width of each zone.
+    """
+
+    #TODO: optimize this
+
+    cdef int i
+    cdef int j
+    cdef sZ *zone
+    cdef int zi = self.__get_z(x,y,z)
+
+    cdef int nz = self.nz
+
+    cdef double dx
+    cdef double dy
+    cdef double dz
+    cdef double rad2 = rad*rad
+
+    cdef int zz = int(z*nz)
+    cdef int zy = int(y*nz)
+    cdef int zx = int(x*nz)
+
+    cdef int zvj
+
+    cdef int a
+    cdef int b
+    cdef int c
+
+    for a in xrange(max(zx-1,0),min(zx+2,nz)):
+      for b in xrange(max(zy-1,0),min(zy+2,nz)):
+        for c in xrange(max(zz-1,0),min(zz+2,nz)):
+
+          zone = self.ZONES[c*nz*nz + b*nz + a]
+
+          for j in xrange(zone.count):
+
+            zvj = zone.ZV[j]
+
+            if zvj == v:
+              continue
+
+            dx = x-self.X[zvj]
+            dy = y-self.Y[zvj]
+            dz = z-self.Z[zvj]
 
             if dx*dx+dy*dy+dz*dz<rad2:
               return -1
