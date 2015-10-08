@@ -403,6 +403,67 @@ cdef class Zonemap3d:
   @cython.wraparound(False)
   @cython.boundscheck(False)
   @cython.nonecheck(False)
+  @cython.cdivision(True)
+  cdef long __sphere_vertices_dst(
+    self,
+    double x,
+    double y,
+    double z,
+    double rad,
+    long *vertices,
+    double *dst) nogil:
+
+    cdef long i
+    cdef long j
+    cdef sZ *zone
+    cdef long zi = self.__get_z(x,y,z)
+
+    cdef long nz = self.nz
+
+    cdef long num = 0
+    cdef double rad2 = rad*rad
+    cdef double nrm2
+
+    cdef double dx
+    cdef double dy
+    cdef double dz
+
+    cdef long zz = <long>(z*nz)
+    cdef long zy = <long>(y*nz)
+    cdef long zx = <long>(x*nz)
+
+    cdef long a
+    cdef long b
+    cdef long c
+
+    for a in xrange(max(zx-1,0),min(zx+2,nz)):
+      for b in xrange(max(zy-1,0),min(zy+2,nz)):
+        for c in xrange(max(zz-1,0),min(zz+2,nz)):
+
+          zone = self.ZONES[c*nz*nz + b*nz + a]
+
+          for j in xrange(zone.count):
+
+            dx = x-self.X[zone.ZV[j]]
+            dy = y-self.Y[zone.ZV[j]]
+            dz = z-self.Z[zone.ZV[j]]
+
+            nrm2 = dx*dx+dy*dy+dz*dz
+
+            if nrm2<rad2:
+
+              vertices[num] = zone.ZV[j]
+              dst[4*num] = dx
+              dst[4*num+1] = dy
+              dst[4*num+2] = dz
+              dst[4*num+3] = sqrt(nrm2)
+              num += 1
+
+    return num
+
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef list _perftest(self, long nmax, long num_points, long num_lookup):
 
     cdef np.ndarray[double, mode="c",ndim=2] a
