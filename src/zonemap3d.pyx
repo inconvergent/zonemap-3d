@@ -240,7 +240,7 @@ cdef class Zonemap3d:
   @cython.cdivision(True)
   cdef long __sphere_is_free(self, double x, double y, double z, double rad) nogil:
     """
-    tests if there is another vertex withlong* rad of x,y. rad must be less than
+    tests if there is another vertex within* rad of x,y. rad must be less than
     the width of each zone.
     """
 
@@ -551,6 +551,13 @@ cdef class Zonemap3d:
   @cython.wraparound(False)
   @cython.boundscheck(False)
   @cython.nonecheck(False)
+  cdef long __get_greatest_zone_size(self) nogil:
+
+    return self.greatest_zone_size
+
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
   cpdef long update_v(self, long v1):
 
     return self.__update_v(v1)
@@ -568,6 +575,13 @@ cdef class Zonemap3d:
   cpdef long get_max_sphere_count(self):
 
     return self.__get_max_sphere_count()
+
+  @cython.wraparound(False)
+  @cython.boundscheck(False)
+  @cython.nonecheck(False)
+  cpdef long get_greatest_zone_size(self):
+
+    return self.__get_greatest_zone_size()
 
   @cython.wraparound(False)
   @cython.boundscheck(False)
