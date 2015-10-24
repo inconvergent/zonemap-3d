@@ -213,10 +213,11 @@ cdef class Zonemap3d:
   @cython.nonecheck(False)
   cdef long __update_v(self, long v1) nogil:
 
-    cdef double x = self.X[v1]
-    cdef double y = self.Y[v1]
-    cdef double z = self.Z[v1]
-    cdef long new_zone = self.__get_z(x, y, z)
+    cdef long new_zone = self.__get_z(
+      self.X[v1],
+      self.Y[v1],
+      self.Z[v1]
+    )
 
     cdef long old_zone = self.VZ[v1]
 
