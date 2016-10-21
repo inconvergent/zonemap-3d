@@ -20,7 +20,7 @@ extensions = [
 
 setup(
     name = 'zonemap3d',
-    version = '0.1.0',
+    version = '0.1.1',
     author = '@inconvergent',
     install_requires = ['numpy', 'cython'],
     license = 'MIT',

@@ -18,14 +18,12 @@ cimport numpy as np
 from time import time
 
 
-cdef long SIZE = 64
+cdef long SIZE = 32
 
 
 cdef class Zonemap3d:
 
   def __init__(self, long nz):
-    """
-    """
 
     self.vnum = 0
 
@@ -99,8 +97,6 @@ cdef class Zonemap3d:
   @cython.boundscheck(False)
   @cython.nonecheck(False)
   cdef long __add_vertex(self, long v1) nogil:
-    """
-    """
 
     cdef long vnum = self.vnum
 
@@ -133,8 +129,6 @@ cdef class Zonemap3d:
   @cython.boundscheck(False)
   @cython.nonecheck(False)
   cdef long __del_vertex(self, long v1) nogil:
-    """
-    """
 
     cdef long z1 = self.VZ[v1]
 
@@ -198,8 +192,6 @@ cdef class Zonemap3d:
   @cython.boundscheck(False)
   @cython.nonecheck(False)
   cdef long __get_z(self, double x, double y, double z) nogil:
-    """
-    """
 
     cdef long nz = self.nz
     cdef long k = <long>(z*nz)
